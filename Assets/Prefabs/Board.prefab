@@ -376,6 +376,7 @@ GameObject:
   - component: {fileID: 1097449526591305691}
   - component: {fileID: 1097449526591305688}
   - component: {fileID: 1097449526591305684}
+  - component: {fileID: 8638909926142018713}
   m_Layer: 5
   m_Name: Board
   m_TagString: Untagged
@@ -485,6 +486,20 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &8638909926142018713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097449526591305689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79236e1bb353d424199418444000eaf6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xSprite: {fileID: 21300000, guid: aebee5a3a895c8b429024dc016a35b2a, type: 3}
+  oSprite: {fileID: 21300000, guid: d5870a3ef713dfd4a8d331c08c36809a, type: 3}
 --- !u!1 &1097449527013258531
 GameObject:
   m_ObjectHideFlags: 0
