@@ -10,6 +10,8 @@ public class GameManager : NetworkBehaviour
     public static GameManager inst;
     public NetworkVariable<int> currentTurn = new NetworkVariable<int>(0);
 
+    private GameObject board;
+
     [SerializeField]private GameObject boardPrefab;
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private TextMeshProUGUI msgText;
@@ -45,9 +47,10 @@ public class GameManager : NetworkBehaviour
 
     public void SpawnBoard()
     {
-        GameObject board = Instantiate(boardPrefab);
+        board = Instantiate(boardPrefab);
         var instanceNetworkObject = board.GetComponent<NetworkObject>();
         instanceNetworkObject.Spawn();
+        GameManager.inst.currentTurn.Value = 0;
     }
 
     public void ShowMsg(string msg)
@@ -91,4 +94,34 @@ public class GameManager : NetworkBehaviour
         msgText.text = msg;
         resultPanel.SetActive(true);
     }
+
+    public void Replay()
+    {
+        if(!IsHost)
+        {
+            ReplayServerRpc();
+            resultPanel.SetActive(false);
+        }
+        else
+        {
+            Destroy(board);
+            SpawnBoard();
+            ReplayClientRpc();
+        }
+    }
+    [ServerRpc(RequireOwnership =false)]
+    public void ReplayServerRpc()
+    {
+        Destroy(board);
+        SpawnBoard();
+        resultPanel.SetActive(false);
+    }
+
+    [ClientRpc]
+    public void ReplayClientRpc()
+    {
+        resultPanel.SetActive(false);
+    }
+
+
 }
