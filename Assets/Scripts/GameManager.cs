@@ -4,6 +4,9 @@ using System.Linq;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using Unity.Services.Core;
+using Unity.Services.Authentication;
+using Unity.Services.Relay;
 
 public class GameManager : NetworkBehaviour
 {
@@ -23,7 +26,7 @@ public class GameManager : NetworkBehaviour
         else inst = this;
     }
 
-    private void Start()
+    private async void Start()
     {
         NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
         {
@@ -33,11 +36,22 @@ public class GameManager : NetworkBehaviour
                 SpawnBoard();
             }
         };
+       await UnityServices.InitializeAsync();
+       await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
     }
     public void StartHost()
     {
-        NetworkManager.Singleton.StartHost();
-        Debug.Log("called");
+        try
+        {
+            RelayService.Instance.CreateAllocationAsync(1);
+            NetworkManager.Singleton.StartHost();
+        }
+        catch (RelayServiceException e)
+        {
+
+            Debug.Log(e);
+        }
     }
 
     public void StartClient()
