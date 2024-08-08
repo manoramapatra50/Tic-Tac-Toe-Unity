@@ -7,6 +7,9 @@ using UnityEngine;
 using Unity.Services.Core;
 using Unity.Services.Authentication;
 using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
+using Unity.Netcode.Transports.UTP;
+using Unity.Networking.Transport.Relay;
 
 public class GameManager : NetworkBehaviour
 {
@@ -15,48 +18,19 @@ public class GameManager : NetworkBehaviour
 
     private GameObject board;
 
-    [SerializeField]private GameObject boardPrefab;
+    [SerializeField] private GameObject boardPrefab;
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private TextMeshProUGUI msgText;
+
+    [SerializeField] private TextMeshProUGUI joinCodeText;
+
+    [SerializeField] private TMP_InputField joinCodeIP;
 
 
     private void Awake()
     {
         if (inst != null && inst != this) Destroy(this.gameObject);
         else inst = this;
-    }
-
-    private async void Start()
-    {
-        NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
-        {
-            Debug.Log(clientId + " joined");
-            if(NetworkManager.Singleton.IsHost && NetworkManager.Singleton.ConnectedClients.Count == 2)
-            {
-                SpawnBoard();
-            }
-        };
-       await UnityServices.InitializeAsync();
-       await AuthenticationService.Instance.SignInAnonymouslyAsync();
-
-    }
-    public void StartHost()
-    {
-        try
-        {
-            RelayService.Instance.CreateAllocationAsync(1);
-            NetworkManager.Singleton.StartHost();
-        }
-        catch (RelayServiceException e)
-        {
-
-            Debug.Log(e);
-        }
-    }
-
-    public void StartClient()
-    {
-        NetworkManager.Singleton.StartClient();
     }
 
     public void SpawnBoard()
@@ -69,13 +43,13 @@ public class GameManager : NetworkBehaviour
 
     public void ShowMsg(string msg)
     {
-        if(msg.Equals("won"))
+        if (msg.Equals("won"))
         {
             msgText.text = "You Won";
             resultPanel.SetActive(true);
             ShowOpponentMsg("You Loose");
         }
-        else if(msg.Equals("draw"))
+        else if (msg.Equals("draw"))
         {
             msgText.text = "Game Draw";
             resultPanel.SetActive(true);
@@ -85,11 +59,11 @@ public class GameManager : NetworkBehaviour
 
     void ShowOpponentMsg(string msg)
     {
-        if(IsHost)
+        if (IsHost)
         {
             ShowOpponentMsgClientRpc(msg);
         }
-        else 
+        else
         {
             ShowOpponentMsgServerRpc(msg);
         }
@@ -98,11 +72,11 @@ public class GameManager : NetworkBehaviour
     void ShowOpponentMsgClientRpc(string msg)
     {
         if (IsHost) return;
-        
+
         msgText.text = msg;
         resultPanel.SetActive(true);
     }
-    [ServerRpc(RequireOwnership =false)]
+    [ServerRpc(RequireOwnership = false)]
     void ShowOpponentMsgServerRpc(string msg)
     {
         msgText.text = msg;
@@ -111,7 +85,7 @@ public class GameManager : NetworkBehaviour
 
     public void Replay()
     {
-        if(!IsHost)
+        if (!IsHost)
         {
             ReplayServerRpc();
             resultPanel.SetActive(false);
@@ -123,7 +97,7 @@ public class GameManager : NetworkBehaviour
             ReplayClientRpc();
         }
     }
-    [ServerRpc(RequireOwnership =false)]
+    [ServerRpc(RequireOwnership = false)]
     public void ReplayServerRpc()
     {
         Destroy(board);
