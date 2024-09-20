@@ -14,7 +14,7 @@ public class BoardManager : NetworkBehaviour
     {
         var btns = GetComponentsInChildren<Button>();
         int k = 0;
-        for(int i = 0; i< 3; i++)
+        for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
@@ -35,12 +35,12 @@ public class BoardManager : NetworkBehaviour
 
     void OnClickBtn(int row, int col)
     {
-        if(NetworkManager.Singleton.IsHost && GameManager.inst.currentTurn.Value == 0)
+        if (NetworkManager.Singleton.IsHost && GameManager.inst.currentTurn.Value == 0)
         {
             allBtnValue[row, col] = 1;
             allBtn[row, col].GetComponent<Image>().sprite = xSprite;
             ChangeSpriteOnClientRPC(row, col);
-            GameManager.inst.currentTurn.Value = 1;
+            GameManager.inst.ChangeTurn();
             CheckResult(row, col);
             Debug.Log("is host");
         }
@@ -48,6 +48,7 @@ public class BoardManager : NetworkBehaviour
         {
             allBtnValue[row, col] = 0;
             allBtn[row, col].GetComponent<Image>().sprite = oSprite;
+            GameManager.inst.timer.StartTimer();
             ChangeSpriteOnServerRPC(row, col);
             CheckResult(row, col);
             Debug.Log("is client");
@@ -55,12 +56,12 @@ public class BoardManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    void ChangeSpriteOnClientRPC(int row,int col)
+    void ChangeSpriteOnClientRPC(int row, int col)
     {
         allBtnValue[row, col] = 1;
         allBtn[row, col].GetComponent<Image>().sprite = xSprite;
         allBtn[row, col].interactable = false;
-
+        GameManager.inst.timer.StartTimer();
         Debug.Log("is client server");
     }
     [ServerRpc(RequireOwnership = false)]
@@ -70,15 +71,15 @@ public class BoardManager : NetworkBehaviour
         allBtn[row, col].GetComponent<Image>().sprite = oSprite;
         allBtn[row, col].interactable = false;
 
-        GameManager.inst.currentTurn.Value = 0;
+        GameManager.inst.ChangeTurn();
 
         Debug.Log("is host server");
     }
 
     void CheckResult(int row, int col)
     {
-       
-        if(IsWon(row, col))
+
+        if (IsWon(row, col))
         {
             GameManager.inst.ShowMsg("won");
         }

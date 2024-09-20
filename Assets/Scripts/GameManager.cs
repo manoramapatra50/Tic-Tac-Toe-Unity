@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
-using Unity.Services.Core;
-using Unity.Services.Authentication;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
-using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 
 public class GameManager : NetworkBehaviour
 {
@@ -26,6 +21,10 @@ public class GameManager : NetworkBehaviour
 
     [SerializeField] private TMP_InputField joinCodeIP;
 
+    [SerializeField] private TextMeshProUGUI[] turnTextMsg;
+
+    public Timer timer;
+
 
     private void Awake()
     {
@@ -33,12 +32,34 @@ public class GameManager : NetworkBehaviour
         else inst = this;
     }
 
+    void Start()
+    {
+        timer.onTimeEnd += ChangeTurn;
+    }
+
     public void SpawnBoard()
     {
         board = Instantiate(boardPrefab);
         var instanceNetworkObject = board.GetComponent<NetworkObject>();
         instanceNetworkObject.Spawn();
-        GameManager.inst.currentTurn.Value = 0;
+        currentTurn.Value = 0;
+        timer.StartTimer();
+        StartTimerOnClientRpc();
+    }
+    [ClientRpc]
+    public void StartTimerOnClientRpc()
+    {
+        timer.StartTimer();
+    }
+
+    public void ChangeTurn()
+    {
+        int v = currentTurn.Value;
+        v++;
+        if (v > 1) v = 0;
+        currentTurn.Value = v;
+
+        timer.StartTimer();
     }
 
     public void ShowMsg(string msg)
@@ -111,5 +132,8 @@ public class GameManager : NetworkBehaviour
         resultPanel.SetActive(false);
     }
 
-
+    void OnDestroy()
+    {
+        timer.onTimeEnd -= ChangeTurn;
+    }
 }
